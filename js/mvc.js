@@ -1,92 +1,49 @@
 "use strict";
 (function(window , document){
 	 //Variables declaration
-	 class Logger {
-		  constructor() {}
-		  info(obj){ console.info(txt);}
-		  error(obj){ console.error(txt);}
-		  log(obj){ console.log(txt);}
-		  warn(obj){ console.warn(txt);}
-		}
-
-		class HttpClient {
-			 constructor() {
-			   this.xhr= window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP");
-			 }
-			 ajaxCall(method,url,async,reqData,respType,callback){
-				 var xhr=this.xhr;
-				 xhr.onreadystatechange=function(){
-					 if(xhr.readyState==4 && xhr.status==200){
-						 if(respType=='html'){ return callback(xhr.responseText);   }
-						 else{	return cb(JSON.parse(xhr.responseText));  }
-						 }
-					};
-				 xhr.open(method,url,true);
-				 if(method !="GET" && reqData) {
-				  	xhr.send(data);
-				 }else{
-				    xhr.send();
-				 }
-			 }
-			 post(conf){
-					 var rt= conf.rt=="html"?"html":"json";
-					 this.ajaxCall("POST",conf.url,true,conf.data,rt,conf.success);
-				}
-			 get(url,conf,cb){
-							let asy=conf.async ? true:false, type=conf.rt=="html"?"html":"json";
-							this.ajaxCall("GET",url,asy,null,type,cb)
-				}
-			 upload(id,action,cb){
-								 var file = document.getElementById(id),
-								 formData = new FormData();
-								 formData.append("upload", file.files[0]);
-								// xhr.setRequestHeader("Content-Type", "multipart/form-data");
-								 this.ajaxCall("POST",conf.url,true,conf.data,rt,conf.success)
-				}
-		 }
-
 	 var location = window.location,uid=0;
 	 function getUid(){ ++uid;   return "00"+uid;}
 	 function toJson(str){return JSON.parse(str);}
-	 function foreach(array,fn){
+	// function toStr(obj){return JSON.stringify(obj); }
+	 function foreach(array,fn){  
 		     for(var i=0;i<array.length;i++){
 			  	  	fn(array[i]);
 				   }
 		 	 }
-
-	   /**
-	   *  Location service and useful for building single page applications.
-	   */
-    class Router {
-    	constructor() {
-          this._routes=[];
-					this._root="/";
-      }
-			addRoutes(routes){
-        routes.forEach((route, i) => {
-        	this._routes[route["p"]]={"controller":route["c"],"view":route["v"]};
-         });
-			}
-				change(arg){location.hash=arg;}
-				append(arg){location.hash=location.hash.concat(arg);}
-				process($http){
-							 var hv=location.hash.slice(1),router=this._routes[hv];
-									 if(router != undefined){
-											var controller=router.controller, viewUrl=router.view;
-											$http.get(viewUrl,{"async":false,"rt":"html"},function(html){
-															if($html("view").getEle()!=undefined){
-																  $html("view").setHtml(html);
-															 }else{
-																 throw new UserException("View is not defined in page.");
-															 }
-														 });
-											}else{
-												 this.change(this._root);
-											}
-				 }
-     }
-
-
+	  var $log=(()=>{return{
+						info:(txt) =>{ console.info(txt);},
+						error:(txt) =>{ console.error(txt);},
+						log:(txt) =>{ console.log(txt);},
+						warn:(txt) =>{ console.warn(txt);}
+						};
+			})(window.console);
+	  /**
+	   * Location service and useful for building single page applications.
+	   */   
+        function Location(){  this._routes=[]; this._root="/"; return this;}
+        Location.prototype={
+		 when:function(path,view,controller){this._routes[path]={"controller":controller,"view":view}; return this;	},
+		 otherwise:function(to){this._root=to; },
+		 change:function(arg){location.hash=arg;},
+		 append:function(arg){location.hash=location.hash.concat(arg);},
+		 process:function($http){
+			      var hv=location.hash.slice(1),router=this._routes[hv];
+								if(router != undefined){
+								   var controller=router.controller, viewUrl=router.view;
+								 	 $http.get(viewUrl,{"async":false,"rt":"html"},function(html){
+												   if($html("view").getEle()!=undefined){
+					  								 $html("view").setHtml(html);   
+				     							  }
+										        else{
+															throw new UserException("View is not defined in page.");
+														}
+											    });
+									 }else{
+										  this.change(this._root);
+									 }
+		  }
+	 };
+	
 /*	 var mvc2=(function(){
 		    	var _controllers = [];
 		   	  var _services=[];
@@ -101,25 +58,25 @@
 						            	};
 										}
 							};
-
-
+		 
+		 
 	 })(); */
-
+	
 	// Provides ioc and dependency Injection.
-    function IOC(){
+    function IOC(){ 
 		   	this._controllers = [];
 		   	this._services=[];
 	   		return this;
 		}
 	IOC.prototype={
 		setController:function(name, callback,di_arr) {
-		this._controllers[name] = {"fn":callback,"di":di_arr};  	},
+			   			this._controllers[name] = {"fn":callback,"di":di_arr};  	},
 		getConObj:function(scope){
 			     var con=this._controllers[scope.cname];
 			     var fn=con.fn;var obj=[scope];
 			     if(con.di!=undefined){
 				   	  for(var i=0;i<con.di.length;i++){
-				   	   	 	obj.push($ioc.getService(con.di[i]));
+				   	   	 	obj.push($ioc.getService(con.di[i]));					 
 						 }
 			    	 }
 			    fn.apply(this,obj);
@@ -127,7 +84,7 @@
 		setService:function(name,obj){this._services[name]=obj; },
 		getService:function(name){return this._services[name]; }
   		};
-
+	
 	//Module of the application.
    function Module(){ return this; }
    Module.prototype={
@@ -137,13 +94,63 @@
 		 	 run:function(cbfn){ this.init=cbfn;},
 		 	 service :function(name,obj){$ioc.setService(name,obj);}
 	};
-
+	
+	//Http Service Code
+	 function HTTP(){
+		  this.xhr=(function($document){
+    	      			return window.XMLHttpRequest ? new XMLHttpRequest() : new ActiveXObject("Microsoft.XMLHTTP"); 
+		  		})();
+		 	   return this; 
+	   } 
+	    HTTP.prototype={
+			post :function(conf){   //for ajax calls
+				  var xhr=this.xhr,
+				  	  url=conf.url,
+				  	  rt=conf.rt=="html"?"html":"json",
+				  	  success=conf.success,
+				      data=conf.data;
+				  xhr.onreadystatechange=function(){ 
+ 				  		if(xhr.readyState==4 && xhr.status==200){  
+ 				  			if(rt=="json"){ return success(JSON.parse(xhr.responseText));}
+ 				  			else           {return success(xhr.responseText);}
+					       }
+					};
+ 			  	xhr.open("POST",url,true);
+ 			  	xhr.send(data); 
+			 },
+			get : function(url,conf,cb){
+				     var xhr=this.xhr,async=conf.async ? true:false, type=conf.rt=="html"?"html":"json";
+		    		 xhr.onreadystatechange=function(){
+							if(xhr.readyState==4 && xhr.status==200){
+								if(type=='html'){ return cb(xhr.responseText);   }
+								else{	return cb(JSON.parse(xhr.responseText));  }
+							} 
+						};
+				     xhr.open("GET",url,async);
+				     xhr.send();
+			  },						
+			upload : function upload(id,action,cb){              // for uploading files
+				 			var xhr=this.xhr,
+						    file = document.getElementById(id),
+							formData = new FormData();   
+							formData.append("upload", file.files[0]); apply
+							xhr.open("post", action, true);
+							xhr.setRequestHeader("Content-Type", "multipart/form-data");
+							xhr.send(formData);  /* Send to server */ 
+							xhr.onreadystatechange = function() {
+							 if ($http.readyState == 4 && $http.status == 200){
+								   return  cb(xhr.responseText);
+								}
+							};
+		        }
+	  }
+	  
 
 	 //Template engine
 	  function Template(){  	}
 	  Template.prototype={
 			render : function(tmpl,data){
-				var exp=/{{([^}}]+)?}}/i;var match;
+				var exp=/{{([^}}]+)?}}/i;var match; 
 					   while (match = exp.exec(tmpl)) {
 						   tmpl = tmpl.replace(match[0], data[match[1]]);
 						}
@@ -158,39 +165,39 @@
 				       ele.innerHTML=html;
 					}
 	 		 }
-
+		
    function mvcloop(scope){
 		foreach(scope.views,function(view){
 		     view.ele.innerHTML= $template.render(view.tmpl,scope);
 		  });
 	  }
-
-
+	 
+   
   // For parsing dom.
  function compileDom(){
 	   var conAttr="mvc-con",
  	   attrs=["mvc-bind","mvc-model","mvc-click","mvc-change","mvc-blur","mvc-mouseleave","mvc-mouseout","mvc-focus","mvc-input","mvc-mouseover","mvc-submit"];
-
+ 	  	
 function start() {
 	   var module_root = document.getElementById("mvc");
 	    if(module_root!=null){
 		 			if(module_root.hasAttribute(conAttr)){   registerController(module_root);  }
 		 	 			parseChilds(module_root);
-		    }
+		    } 
 		}
 function parseChilds(ele) {
 	 if(ele.childElementCount > 0) {
 		    foreach(ele.children,function(child){
-					if(child.hasAttribute(conAttr)){
-						registerController(child);
+					if(child.hasAttribute(conAttr)){ 
+						registerController(child); 
 					}else{
-						parseChilds(child);
+						parseChilds(child); 
 					}
 			  });
 		 }
 }
-
-//Registering controller.
+ 
+//Registering controller.   
 function registerController(conele) {
 	    var scope={"id": getUid(),"views":[],"events":[]};
 	    scope.cname=conele.getAttribute(conAttr),
@@ -214,13 +221,13 @@ function registerController(conele) {
 					//	scope.watch(value,function(){mvcloop(scope);});
 					break;
 				default:// events of controller
-						var event_name=attr.substr(4)
+						var event_name=attr.substr(4)				
 						scope.events.push({"ele":ele,"name":value});
 						var fn=value.substring(0,value.length-2)
 						ele.addEventListener(event_name,function(){
 							  scope[fn].apply(scope);
 						});
-
+															
 					break;
 				}
 			}
@@ -237,11 +244,11 @@ function registerController(conele) {
 			}
 			readAttr(conele);
 			console.log(scope);
-		}
+		}	
 		start();
 	 }
   //html function provides wrapper for html elements.
-  function $html(selector){
+  function $html(selector){  
 	     function HTML(selector){this.ele=document.getElementById(selector); }
          HTML.prototype={
 		 		 getEle:function(){ return this.ele;},
@@ -281,7 +288,7 @@ function registerController(conele) {
 					   },
 				 slide:function(width,height){
 					 			  var ele=this.ele;
-							      var id=setInterval(function(){
+							      var id=setInterval(function(){ 
 											    var ew=ele.style.width; var eh=ele.style.height;
 													var w=ew.substr(0,ew.indexOf('px'));
 													var h=eh.substr(0,eh.indexOf('px'));
@@ -290,8 +297,8 @@ function registerController(conele) {
 											  if(w==width&& h==height){
 													clearInterval(id);
 												}
-								},10);
-
+								},10);		
+							
 						},
 				move:function(left,top){
 							var ele=this.ele;
@@ -308,7 +315,7 @@ function registerController(conele) {
 						},
 				 validate: function(){
 		    	       	 function vErr(ele,errMsg){
-										 ele.style.borderColor="red";ele.focus();
+										 ele.style.borderColor="red";ele.focus(); 
 										 $html("error").setHtml(errMsg);
 										 return false;
 									 };
@@ -325,11 +332,11 @@ function registerController(conele) {
 		    	         base64Regex = /[^a-zA-Z0-9\/\+=]/i,
 		    	         numericDashRegex = /^[\d\-\s]+$/,
 		    	         urlRegex = /^((http|https):\/\/(\w+:{0,1}\w*@)?(\S+)|)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?$/;
-
+					 
 					          for(var i=0;i<=this.ele.elements.length-1;i++){
 											var ele=this.ele.elements[i];
 										 if(ele.hasAttribute("mvc-validate")){
-											 	ele.style.borderColor="";
+											 	ele.style.borderColor="";		
 										 var evalue=ele.value, etype=ele.type, len=ele.value.length;
 										 var vconf=toJson(ele.getAttribute("mvc-validate").replace(/\'/g,"\""));
 										 if(etype=='text'|| etype=='password'){
@@ -341,20 +348,20 @@ function registerController(conele) {
 										}else if(etype=="date" && evalue==""){
 											   return vErr(ele,"Please enter valid date");
 										}else{
-
-										}
-
+											
+										}	
+						      
 										/**if(ele.type=='radio' && ele.value=="-1")     return vErr(ele);
 						    		else if(ele.type=="select-one" && ele.value=="-1") return vErr(ele); */
 
 										}
-
+					 
 										}
-
+		    	       	 
 					      $html("error").setHtml("Form validated");
 					    			 return true;
 				        },
-				 submit:function(type ,callback) {
+				 submit:function(type ,callback) { 
 						    if(this.validate(this.ele)){
 						    	this.ele.id; var url=this.attr("action"); var data=this.data();
 			       	          	Ajax.get(url+"?"+data,callback);
@@ -364,9 +371,9 @@ function registerController(conele) {
 				 getFormdata:function(obj){
 								var felems=this.ele.elements;
 								for(var int = 0; int < felems.length; int++) {
-					     			var ele=felems[int];
+					     			var ele=felems[int];	
 					     			var eleName=ele.name;
-					     			if(obj.hasOwnProperty(eleName))
+					     			if(obj.hasOwnProperty(eleName)) 
 					     				obj[eleName]=ele.value;
 	    	  					}
 	    	  					return obj;
@@ -375,77 +382,38 @@ function registerController(conele) {
 					}
 		    return new HTML(selector);
 	  }
-
+              
    var mvc=new Module(),
-       $location=new Router(),
+       $http=new HTTP(),
+       $location=new Location(),
        $ioc=new IOC(),
-	     $template=new Template(),
-			 $http = new HttpClient();
+	     $template=new Template();
 
-   		 mvc.service("$http",new HttpClient());
-   		 mvc.service("$html",$html);
+   	   mvc.service("$http",$http);
+   	   mvc.service("$html",$html);
        mvc.service("$template",new Template());
-       mvc.service("$log",Logger);
-
-  		 window.mvc=mvc;
-   		 function init(){
+       mvc.service("$log",$log);
+   
+  	   window.mvc=mvc;
+   	   function init(){
 		 			$location.process($http);
 		 			compileDom();
-			 }
-
+		}
+	
    /**
 	 * setInterval(callback, delay); setTimeout(callback, delay)
 	 * clearInterval(intervalID) clearTimeout(intervalID)
 	 */
-     var timerId=setInterval(function(){
+   var timerId=setInterval(() =>{
 	   if (document.readyState ==="complete"){
 		 		 try {
-			  	 		console.log("Document loaded..!");
+			  	 		console.log("Document loaded..!"); 
+						clearInterval(timerId);
 			   			init();
 			   			window.addEventListener("hashchange",init);
 		   			}catch (e) {
-			     		console.log(e.message);
-		   				}
-	       	clearInterval(timerId);
+			     		console.log(e.message);	
+		   			}
     		}
        }, 5);
  })(window,document);
-
-/*
-// Simple JavaScript Templating
-// John Resig - http://ejohn.org/ - MIT Licensed
-(function(){
-  var cache = {};
-
-  this.tmpl = function tmpl(str, data){
-    // Figure out if we're getting a template, or if we need to
-    // load the template - and be sure to cache the result.
-    var fn = !/\W/.test(str) ?
-      cache[str] = cache[str] ||
-        tmpl(document.getElementById(str).innerHTML) :
-
-      // Generate a reusable function that will serve as a template
-      // generator (and which will be cached).
-      new Function("obj",
-        "var p=[],print=function(){p.push.apply(p,arguments);};" +
-
-        // Introduce the data as local variables using with(){}
-        "with(obj){p.push('" +
-
-        // Convert the template into pure JavaScript
-        str
-          .replace(/[\r\t\n]/g, " ")
-          .split("<%").join("\t")
-          .replace(/((^|%>)[^\t]*)'/g, "$1\r")
-          .replace(/\t=(.*?)%>/g, "',$1,'")
-          .split("\t").join("');")
-          .split("%>").join("p.push('")
-          .split("\r").join("\\'")
-      + "');}return p.join('');");
-
-    // Provide some basic currying to the user
-    return data ? fn( data ) : fn;
-  };
-})();
-
-*/

@@ -2,11 +2,16 @@
 	<div style="width: 50%; float: left;">
 		<h1>MVC</h1>
 		<div>
-		  <p mvc-con="testController">
+		  <div mvc-con="testController">
 		  		<b mvc-bind="fullname">Welcome To : {{fname}} {{lname}}</b><br> 
 				First Name: <input mvc-model="fname" id="abc" type="text"/><br>
 				Last Name : <input mvc-model="lname" type="text" /><br> 
-			</p>
+				<button mvc-click="move()"> Slide</button>
+				<h1 id="move" style="opacity:0.5;">Slide</h1>
+				 <ul mvc-for="name in names">
+					 <li>{{name}}</li>
+				 </ul>
+				</div>
 		</div>
 	</div>
 	</div>

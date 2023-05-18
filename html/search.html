@@ -1,9 +1,12 @@
 <div mvc-con="searchController">
-<form onsubmit="return false;" mvc-submit="search()">
-<div class="querybox" id="qbox">
-<input id="search1" mvc-model="q" name="q" placeholder="Enter query here.." mvc-focus="qboxChange()">
-<img class="searchicon" alt="No Image" mvc-click="search()" src="img/search-lens.png">
-<div>
+   <form mvc-submit="search()">
+     <div class="querybox" id="qbox">
+        <input id="search1" mvc-model="q" name="q" placeholder="Enter query here.." mvc-focus="qboxChange()" mvc-change="suggestions()">
+        <img class="searchicon" alt="No Image" mvc-click="search()" src="../img/search-lens.png"> </img>
+         <ul mvc-for="suggest in suggestList">
+               <li>{{suggest}}</li>
+         </ul>
+      <div>
  <label style="padding-left: 100px;">Search results:</label>
  <i>No of results : </i><b style="color: red;" id="resultsSize"></b> <i>Total time: </i><b style="color: red;" id="time"></b>
  <label style="color: teal;margin-right:170px;float: right;"  mvc-click="showQueries()">Sample Queries</label>
