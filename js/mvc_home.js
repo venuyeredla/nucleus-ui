@@ -6,8 +6,7 @@ module.routing().when('/home',   "html/welcome.html",null)
 	 			.when('/about',  "html/about.html",null )
 	 			.when('/signup', "html/signup.html",null)
 	 			.otherwise("/home");
-
-module.run(() => {
+module.run(function(){
 	console.log("run funciton");
 });
 

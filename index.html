@@ -13,6 +13,13 @@
             <a class="link"  href="#/home">Home</a>
             <a class="link" href="#/search">Search</a>
           </div>
+          <div>
+            <span>Count numbers: <output id="worker"></span></p>
+            <button onclick="startWorker()">Start Worker</button> 
+            <button onclick="stopWorker()">Stop Worker</button>
+            <span id="sse"></span>
+
+          </div>
          <div style="float:right;width: 30%;">
             <span style="float:right;">
 			          <a href="#/home" >Sign In</a>
@@ -20,11 +27,11 @@
          </div>
          <div style="clear: both;padding-top: 25px;">
            <hr>
-         
          </div>
         
 	</div>
-  <popup-info img="../img/city.jpg" data-text="Your card validation code (CVC) is an extra security feature — it is the last 3 or 4 numbers on the back of your card."></popup-info>
+   
+
 	<div class="middle" id="view"></div>
 	
 	<div class="footer">
@@ -34,5 +41,6 @@
 <script type="text/javascript" src="js/lib.js"></script>
 <script type="text/javascript" src="js/home.js"></script>	
 <script type="text/javascript" src="js/tags.js"></script>	
+<script type="text/javascript" src="js/webapi.js"></script>	
 </body>
 </html>

@@ -1,41 +1,24 @@
-
-function createElement(name,attributes,innerHTML){
-    const element= document.createElement(name);
-     for(let key in attributes){
-         element.setAttribute(key,attributes[key])
-     }
-     if(innerHTML!=undefined){
-        element.innerHTML=innerHTML;
-     }
-     return element;
- }
- 
-
 class PopUpInfo extends HTMLElement {
 	constructor() {
-	  // Always call super in constructor first.
+	  // Always call super first in constructor
 	  super();
+	}
+	connectedCallback(){
 	  // Create a shadow root
-	  const shadow = this.attachShadow({mode: 'open'});
-	  // Create spans
-	  const wrapper =createElement('span',{"class":"wrapper"});
-	  const icon =createElement('span',{"class":"icon","tabindex":0});
-	  const info = createElement('span',{"class":"info"});
-	  // Take attribute content and put it inside the info span
-	  const text = this.getAttribute('data-text');
-	  info.textContent = text;
+	   this.attachShadow({mode: 'open'});
+
+	   let textContent = this.getAttribute('data-text');
+	   let imgUrl=this.hasAttribute('img')?this.getAttribute('img'):'img/default.png';
+
+	    let vEle=dom.vEle("div",{class:"wrapper"},[
+			       dom.vEle("span",{class:"icon"},[
+					dom.vEle("img",{src:imgUrl})
+				   ]),
+				   dom.vEle("span",{class:"info","textContent":textContent})
+		]);
   
-	  // Insert icon
-	  let imgUrl;
-	  if(this.hasAttribute('img')) {
-		imgUrl = this.getAttribute('img');
-	  } else {
-		imgUrl = 'img/default.png';
-	  }
-  
-	  const img =createElement('img',{"src":imgUrl});
-	  icon.appendChild(img);
-  
+      var newEle= dom.createEle(vEle);
+
 	  // Create some CSS to apply to the shadow dom
 	  const style = document.createElement('style');
 	  console.log(style.isConnected);
@@ -47,7 +30,7 @@ class PopUpInfo extends HTMLElement {
 		.info {
 		  font-size: 0.8rem;
 		  width: 200px;
-		  display: block;
+		  display: inline-block;
 		  border: 1px solid black;
 		  padding: 10px;
 		  background: white;
@@ -66,27 +49,23 @@ class PopUpInfo extends HTMLElement {
 		  opacity: 1;
 		}
 	  `;
-	  // Attach the created elements to the shadow dom
-	 // shadow.appendChild(style);
-	 // this.shadowRoot.appendChild(style)
+	  this.shadowRoot.append(style,newEle)
 	  console.log(style.isConnected);
-	  wrapper.appendChild(icon);
-	  wrapper.appendChild(info);
-      shadow.appendChild(wrapper);
-	 
-	
 	}
 
   }
+  
   customElements.define('popup-info', PopUpInfo);
 
   class FooterTag extends HTMLElement{
 	constructor(){
 		super()
         //const shadow = this.attachShadow({mode: 'open'});
-        let element= createElement("p",{"class":"link",value:"gopal"},"Copy Right :&copy;Venugopal reddy -from custom");
-        this.appendChild(element)
+	}
+	connectedCallback(){
+		let vEle= dom.vEle("p",{"class":"link",value:"gopal","innerHTML":"Copy Right :&copy;Venugopal reddy -from custom"});
+        dom.renderVEle(this,vEle);
 	}
   }
 
-  customElements.define('footer-tag', FooterTag);
+customElements.define('footer-tag', FooterTag);

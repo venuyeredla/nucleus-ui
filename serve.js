@@ -19,15 +19,18 @@ app.get('/', function (req, res) {
 */
 app.listen(port,()=> {
   console.log("Listening at localhost:%d",port);
-  var counter=0;
-  /* setInterval(()=>{
-      console.log("Waiting...");
+  /*  var counter=0;
+   setInterval(()=>{
+    //  console.log("Waiting...");
+      process.stdout.write(".")
       counter++;
       if(counter>=4){
-        console.clear()
+       // process.stdout.clearLine();
+        counter=0;
+         //    console.clear()
       }
 
-   },200); */
+   },2000); */
 })
 
 

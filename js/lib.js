@@ -21,12 +21,8 @@
 
 	 class HTTPService {
 		constructor(){}
-		get(url,conf){ 
-			return this.newPromise(url,"GET",conf);
-		}
-		post(conf){ 
-			return this.newPromise(conf.url,"POST",conf,conf.data);
-	  	 }
+		get(url,conf){  return this.newPromise(url,"GET",conf); }
+		post(conf){  return this.newPromise(conf.url,"POST",conf,conf.data);}
 		upload(formid,action){              // for uploading files
 			file = document.getElementById(formid),
 			formData = new FormData();   
@@ -39,8 +35,7 @@
 				return new Promise((resolve, reject) => {
 				var visited=false;
 				xhr.onreadystatechange=()=>{
-					if(visited==false){
-						if(xhr.readyState==4 && xhr.status==200){
+					   if(visited==false && xhr.readyState==4 && xhr.status==200){
 							visited=true;
 							console.log("Content got from server")
                             var response=type=="html"?xhr.responseText:JSON.parse(xhr.responseText)
@@ -48,14 +43,13 @@
 						}else if(xhr.readyState==4 && xhr.status!=200){
 							reject(xhr.responseText);
 						}
-					}
-			};
-			xhr.open(method,url,async);
-			if(method=="POST"){
-				xhr.send(data); 
-			}else{
-				xhr.send();
-			}
+			          };
+			    xhr.open(method,url,async);
+			    if(method=="POST"){
+					xhr.send(data); 
+				}else{
+					xhr.send();
+			    }
 			});
 		}
 	  }
@@ -80,9 +74,9 @@
 					 if(route != undefined){
 						 var controller=route.controller, viewUrl=route.view;
 						 $http.get(viewUrl,{"async":true,"rt":"html"})
-						 	  .then((value)=>{
-									  if($html("view").getEle()!=undefined){
-										$html("view").setHtml(value); 
+						 	  .then((htmlTemp)=>{
+									  if($domParser.getEle("view")!=undefined){
+										$domParser.innerHTML("view",htmlTemp);
 										$domParser.parseDom();
 										}
 									   },
@@ -121,31 +115,66 @@
 		}
 		setService(name,obj){this._services[name]=obj; }
 		getService(name){return this._services[name]; }
+	}
+	
+    // For parsing dom.
+    class Dom{
+		constructor(){ }
+		getEle(selector){ return document.getElementById(selector);}
+      
+		vEle(name,attrs,childs){
+            return {"name":name,"attrs":attrs,"childs":childs}
+	     }
+		 createEle(vEle){
+			let name=vEle.name, attrs=vEle.attrs,childs=vEle.childs;
+
+		    let element= document.createElement(name);
+			for(let key in attrs){
+				if(key=='innerHTML' || key=='textContent'){
+					element[key]=attrs[key];
+				}else{
+					element.setAttribute(key,attrs[key]);
+				}
+			}
+			if(childs!=undefined && childs.length>0){
+				for(let child of vEle.childs){
+					let childEle=this.createEle(child)
+					element.appendChild(childEle);
+				}
+			}
+		   return element;
 		}
-	 //Template engine
-	  class Template{
-		  constructor(){}
-		  render(tmpl,data){
+
+	   renderVEle(parent, vEle){
+		  parent.appendChild(this.createEle(vEle));
+	    }
+
+		renderTemplate(tmpl,data){
 			var exp=/{{([^}}]+)?}}/i;var match; 
 				   while (match = exp.exec(tmpl)) {
 					   tmpl = tmpl.replace(match[0], data[match[1]]);
 					}
 				   return tmpl;
 			  }
-		bind(ele,obj){
-				 var exp=/{{([^}}]+)?}}/i; var match;
-					   var html=ele.innerHTML;
-						  while (match = exp.exec(html)) {
-								html = html.replace(match[0], obj[match[1]]);
-						   }
-				   ele.innerHTML=html;
-				}
-	    }
-
-  // For parsing dom.
-    class DomParser{
-		constructor(){
+       
+        innerHTML(id,html){
+			this.getEle(id).innerHTML=html;
 		}
+		addClass(id,newClass){
+			this.getEle(id).className=newClass;
+		}
+		show(id){
+			this.getEle(id).style.display="block";
+		}	
+		hide(){	
+			this.getEle(id).style.display="none";
+		}
+
+		toggle(id){
+			var ele=this.getEle(id);
+            ele.style.display=ele.style.display=='none'?"block":"none";
+		}
+
 		isController(element){ return element!=null && element.hasAttribute(cntrlAttr); }
 		hasChilderen(ele){ return ele!=null && ele.childElementCount > 0; }
 	    parseDom() {
@@ -158,24 +187,25 @@
 				  }
 				 } 
 			 }
+		processChildTree(ele) {
+				if(this.hasChilderen(ele)) {
+					for(let child of ele.children){
+					   if(this.isController(child)){ 
+							  this.processCtrlTree(child); 
+						}else{
+							  this.processChildTree(child); 
+						  }
+					   }
+				  }
+			  }
+
 		  processCtrlTree(cntrlEle) {
 				var cntrlName=cntrlEle.getAttribute(cntrlAttr);
 				var scope = $ioc.getInjectedScope(cntrlName);
 				this.readAttr(cntrlEle,scope);
 				updateViews(scope);
 		   }	
-		 processChildTree(ele) {
-			  if(this.hasChilderen(ele)) {
-				  for(let child of ele.children){
-					 if(this.isController(child)){ 
-							this.processCtrlTree(child); 
-					  }else{
-							this.processChildTree(child); 
-						}
-					 }
-				}
-			}
-	   
+		
 		readAttr(ele,scope) {
 				for(let child of ele.children){
 				 const attrList=child.attributes;
@@ -217,7 +247,7 @@
 						     var clone=loopEle.cloneNode(true);
 							 templ=templ.replace(parts[0],"value")
 							 let dataMap={"value":value};
-							 clone.innerHTML=$template.render(templ,dataMap)
+							 clone.innerHTML=this.renderTemplate(templ,dataMap)
 							 ele.appendChild(clone);
 						 }
             
@@ -235,69 +265,57 @@
 						break;
 					}
 				}
+
+		
+		
 	}
 
 	function updateViews(scope){
-		foreach(scope.views,function(view){
-				 view.ele.innerHTML= $template.render(view.tmpl,scope);
-			  });
-	 }
+		for(let view of scope.views){
+			view.ele.innerHTML= $domParser.renderTemplate(view.tmpl,scope);
+		}
+	}	  
 
-  //html function provides wrapper for html elements.
-  function $html(selector){  
-	     function HTML(selector){this.ele=document.getElementById(selector); }
-         HTML.prototype={
-		 		 getEle:function(){ return this.ele;},
-		 		 getVal:function(){ return this.ele.value;},
-		 		 setVal:function(val){ this.ele.value=val;},
-		 		 getHtml:function(){ return this.ele.innerHTML;},
-		 		 setHtml:function(html){this.ele.innerHTML=html;},
-		 		 addClass:function(newClass){this.ele.className=newClass;},
-		 		 getClass:function(){return this.ele.className;},
-		 		 removeClass:function(clsName){this.ele.className=newClass},
-		 		 show:function(){	this.ele.style.display="block";},
-		 		 hide:function(){	this.ele.style.display="none" ;},
-		 		 toggle:function(){
-				    	     var val=this.ele.style.display; // val=="none"?this.show():this.hide;
-				    	     if(val=='none')  this.ele.style.display="block";
-				    	     else  this.ele.style.display="none";
-				    	   	},
-				 fadeIn:function(speed){ 
-					 			var ele=this.ele;
-						 		var opa=parseFloat(ele.style.opacity);
-						 		if(opa>=0.0 || opa<=1){
-						 		    var id=setInterval(function(){
-										ele.style.opacity=opa+0.25;
-									    if(ele.style.opacity=="1"){ clearInterval(id)};
-										},50);
-						 		}
-					    	},
-				 fadeOut:function(speed){
-					 		var ele=this.ele;
-					 		var opa=parseFloat(ele.style.opacity);
-					 		if(opa>=0.0 || opa<=1){
-					 		    var id=setInterval(function(){
-									ele.style.opacity=opa-0.25;
-								    if(ele.style.opacity=="0"){ clearInterval(id)};
-									},50);
-					 		}
-					   },
-				 slide:function(width,height){
-					 			  var ele=this.ele;
-							      var id=setInterval(function(){ 
-											    var ew=ele.style.width; var eh=ele.style.height;
-													var w=ew.substr(0,ew.indexOf('px'));
-													var h=eh.substr(0,eh.indexOf('px'));
-													if(w<width) ele.style.width=++w+'px';
-											    if(h<height) ele.style.height=++h+'px';
-											  if(w==width&& h==height){
-													clearInterval(id);
-												}
-								},10);		
-							
-						},
-				move:function(left,top){
-							var ele=this.ele;
+  class Animate{  
+		constructor(){}
+	   getEle(selector){
+		return document.getElementById(selector);
+	   }
+	   fadeIn(speed){ 
+					 var ele=this.getEle(speed)
+					var opa=parseFloat(ele.style.opacity);
+					if(opa>=0.0 || opa<=1){
+						var id=setInterval(function(){
+							ele.style.opacity=opa+0.25;
+							if(ele.style.opacity=="1"){ clearInterval(id)};
+							},50);
+					}
+				}
+		fadeOut(speed){
+			var ele=this.getEle(speed)
+			var opa=parseFloat(ele.style.opacity);
+			if(opa>=0.0 || opa<=1){
+				var id=setInterval(function(){
+					ele.style.opacity=opa-0.25;
+					if(ele.style.opacity=="0"){ clearInterval(id)};
+					},50);
+			}
+		}
+	    slide(width,height){
+				var ele=this.getEle(speed)
+				var id=setInterval(function(){ 
+							var ew=ele.style.width; var eh=ele.style.height;
+								var w=ew.substr(0,ew.indexOf('px'));
+								var h=eh.substr(0,eh.indexOf('px'));
+								if(w<width) ele.style.width=++w+'px';
+							if(h<height) ele.style.height=++h+'px';
+							if(w==width&& h==height){
+								clearInterval(id);
+							}
+			},10);		
+		}	
+		move(leftar,toparg){
+							var ele=this.getEle(speed);
 										  var id=setInterval(function(){
 												 var ex=ele.style.letf; var ey=ele.style.top;
 													var x=ex.substr(0,ex.indexOf('px'));
@@ -308,11 +326,11 @@
 													clearInterval(id);
 												}
 											},5);
-						},
-				 validate: function(){
+						}
+	     validate(id){
 		    	       	 function vErr(ele,errMsg){
 										 ele.style.borderColor="red";ele.focus(); 
-										 $html("error").setHtml(errMsg);
+										 $domParser.innerHTML("error",errMsg);
 										 return false;
 									 };
 		    	       /* var numericRegex = /^[0-9]+$/,
@@ -354,18 +372,17 @@
 										}
 					 
 										}
-		    	       	 
-					      $html("error").setHtml("Form validated");
+										$domParser.innerHTML("error","Form validated");
 					    			 return true;
-				        },
-				 submit:function(type ,callback) { 
+				        }
+		    submit(type ,callback) { 
 						    if(this.validate(this.ele)){
 						    	this.ele.id; var url=this.attr("action"); var data=this.data();
 			       	          	Ajax.get(url+"?"+data,callback);
 					     	 }
 						    return false;
-				 			},
-				 getFormdata:function(obj){
+				 			}
+			getFormdata(obj){
 								var felems=this.ele.elements;
 								for(var int = 0; int < felems.length; int++) {
 					     			var ele=felems[int];	
@@ -374,10 +391,8 @@
 					     				obj[eleName]=ele.value;
 	    	  					}
 	    	  					return obj;
-	    					 },
-		   			formReset:function(){ this.ele.reset(); }
-					}
-		    return new HTML(selector);
+	    					 }
+		   	formReset(){ this.ele.reset(); }
 	  }
 
 	class Module{ 
@@ -394,17 +409,15 @@
        		$http=new HTTPService(),
       		$hashRouter=new HashRouter($http),
        		$ioc=new IOC(),
-	   		$template=new Template(),
-	   		$domParser=new DomParser()
+	   		$domParser=new Dom()
 
    	   mvc.service("$http",$http);
-   	   mvc.service("$html",$html);
-       mvc.service("$template",$template);
+   	   mvc.service("$html",$domParser);
        mvc.service("$log",$log);
 
-	   	//Module of the application.
-
+	   //Module of the application.
   	   window.mvc=mvc;
+	   window.dom=$domParser;
    /**
 	 * setInterval(callback, delay); setTimeout(callback, delay)
 	 * clearInterval(intervalID) clearTimeout(intervalID)
@@ -415,6 +428,7 @@
 			  	 		console.log("Document loaded and parsing dom started..."); 
 						clearInterval(timerId);
 			   			window.addEventListener("hashchange",()=>{ $hashRouter.handleHashChange();});
+						$hashRouter.handleHashChange();
 		   			}catch (e) {
 						console.error(e)
 			     		console.log(e.message);	

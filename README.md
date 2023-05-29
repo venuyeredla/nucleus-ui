@@ -80,7 +80,7 @@ var object = new Person("Sudheer");`
  Web Components is a suite of different technologies allowing you to create reusable custom elements — with their functionality 
  encapsulated away from the rest of your code — and utilizes them in your web apps.
  1. Creating custom tages,
- 2. Using Shadow dom(Shadow host ,shadow Root, attaching SR to sh in open(Accessible from main dom JS.) or closed mode.)
+ 2. Using Shadow dom(Shadow host ,shadow Root, attaching SR to SH in open(Accessible from main dom JS.) or closed mode.)
  3. Using templates.
  4. Virtual DOM by Reactjs or VueJs
 
