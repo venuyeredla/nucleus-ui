@@ -124,3 +124,7 @@ var object = new Person("Sudheer");`
 
 ## Running this application 
 $> node serve.js 
+
+
+build $> docker build . -t nucleus-ui/nucleus-ui
+run $> docker run -d -p 2023:2023 nucleus-ui/nucleus-ui
