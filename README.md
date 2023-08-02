@@ -126,5 +126,8 @@ var object = new Person("Sudheer");`
 $> node serve.js 
 
 
-build $> docker build . -t nucleus-ui/nucleus-ui
-run $> docker run -d -p 2023:2023 nucleus-ui/nucleus-ui
+build $> docker build . -t nucleus-ui:latest
+run $> docker run --rm -d -p 2023:2023 nucleus-ui
+save $> docker save -o gapp.tar gapp
+
+Save $> docker save -o gapp.tar gapp

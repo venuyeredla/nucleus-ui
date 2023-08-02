@@ -1,5 +1,4 @@
-FROM node:20-alpine3.17
-ENV NODE_ENV=production
+FROM node:19
 
 # Create app directory
 WORKDIR /usr/src/app
@@ -16,5 +15,5 @@ RUN npm install
 # Bundle app source
 COPY . .
 
-EXPOSE 2023
+EXPOSE 10000
 CMD [ "node", "serve.js" ]
