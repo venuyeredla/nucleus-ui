@@ -5,5 +5,4 @@ function timedCount() {
   postMessage(i);
   setTimeout("timedCount()",500);
 }
-
 timedCount();

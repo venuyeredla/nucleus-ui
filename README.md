@@ -1,15 +1,14 @@
 # JavascriptNotes
-1. Javascript single threaded, dynamically typed interpreted language. 
-2. Dom manipulation and event handling is the important aspect of language.
+1. Javascript single threaded, dynamically typed interpreted language. Event hanlding and Dom manipulation are the important aspects of language.
 
 
 Data types :
 Primitive: Boolean, Number,BigInt String, Null, Undefined, Symbol.
-Abstract(Using new keyword) : Arrays, Objects, functions, Dates, Maths,
+Abstract (Using new keyword) : Arrays, Objects, functions, Dates, Maths,
 Collections/Containers : Set, Map
 
 Array methods: array.sort(), shift,unshift, Slice(reading), Splice(Altering), push,pop,filter,includes
-String methods: substr(idx,number of chars),substring(idxs,idxe)
+String methods: substr(idx,n0_of_chars),substring(start,end)
 
 
 # Creation of Objects
@@ -79,7 +78,7 @@ var object = new Person("Sudheer");`
 # Web component
  Web Components is a suite of different technologies allowing you to create reusable custom elements — with their functionality 
  encapsulated away from the rest of your code — and utilizes them in your web apps.
- 1. Creating custom tages,
+ 1. Creating custom tags,
  2. Using Shadow dom(Shadow host ,shadow Root, attaching SR to SH in open(Accessible from main dom JS.) or closed mode.)
  3. Using templates.
  4. Virtual DOM by Reactjs or VueJs
@@ -125,9 +124,9 @@ var object = new Person("Sudheer");`
 ## Running this application 
 $> node serve.js 
 
-
 build $> docker build . -t nucleus-ui:latest
 run $> docker run --rm -d -p 2023:2023 nucleus-ui
-save $> docker save -o gapp.tar gapp
 
+
+save $> docker save -o gapp.tar gapp
 Save $> docker save -o gapp.tar gapp

@@ -13,7 +13,6 @@ class Maths{
     circleArea(radius){
         return PI*radius*radius;
     }
-
 }
 //Exports are of two types : Named or default
 export default Maths

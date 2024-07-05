@@ -28,14 +28,11 @@ function myDisplayer(some) {
     (error) => {myDisplayer(error);}
   );
 
-
-
 function printmsg(){
     swap(5,3)
     var maths=new Maths()
     console.log("Logrithm of 8 base 2 = %i",maths.log2(8))
     console.info("Area of circle of radius %i = %f",3,maths.circleArea(3))
-
 }
 
 

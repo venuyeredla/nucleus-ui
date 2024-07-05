@@ -19,8 +19,6 @@ function stopWorker() {
   w = undefined;
 }
 
-
-
 if(typeof(EventSource) !== "undefined") {
     var source = new EventSource("/hello");
     source.onmessage = function(event) {
@@ -29,8 +27,6 @@ if(typeof(EventSource) !== "undefined") {
   } else {
     document.getElementById("sse").innerHTML = "Sorry, your browser does not support server-sent events...";
   }
-
-
 
   function clickCounter() {
     if (typeof(Storage) !== "undefined") {
